@@ -6,78 +6,86 @@ const dataPromise = d3.json(url);
 console.log("Data Promise:", dataPromise);
 
 //Fetch the Json data and console log it
-d3.json(url).then (function(data) {
+d3.json(url).then(function (data) {
     console.log(data);
-
-// call the init function and pass the data and extract the IDs form the data
+    
     init(data);
-    //metaData(demographicInfo);
 });
 
-function init(data) {
-    let dropdown = d3.select("#selDataset");
+function init() {
+    d3.json(url).then(function (data) {
+        console.log(data);
+        
+        let dropdown = d3.select("#selDataset");
+        
+        let sampleIDs = data.names
+        console.log(sampleIDs);
+        sampleIDs.forEach(function (id) {
+            dropdown.append("option").text(id).property("value", id);
+        });
 
-    //Populate the dropdowns with the IDs
-    let sampleIDs = data.names
-    console.log(sampleIDs);
-    sampleIDs.forEach(function (id) {
-        dropdown.append("option").text(id).property("value", id);
+        let selection = sampleIDs[0];
+        barChart(selection, data);
+        metaData(selection, data.metadata);
+        optionChanged(selection, data.samples, data.metadata);
     })
-    let selection = sampleIDs[0];
-    barChart(selection, metaData(selection))
-};
+}   
 
-//let dataInfo = sampleIDs[0];
-    //console.log(dataInfo);
-        
-//barChart(sampleIDs[0], data.samples);
-//bubbleChart(sampleIDs[0], data.samples);
-//metadata(metaData[0], data.samples)
-
-        
-//barChart(sampleIDs[0]);
-//bubbleChart(sampleIDs[0]);
-//metadata(metaData[0])
-
-function optionChange(value) {
-    const sampleIDs = samples.find((item) => item.id === value);
-    const demographicInformation = data.metadata.find((item) => item.id == value);
+function optionChanged(value) {
+    console.log(value);
+    barChart(value);
+    metaData(value);
 }
 
 function metaData(demographicInfo) {
-    let demographicInfoDiv = d3.select("#sample-metadata");
-    demographicInfoDiv.html("");
-    for (const [key, value] of Object.entries(demographicInfo)) {
-        demographicInfoDiv.append("p").text(`${key}: ${value}`);
-    }
+    d3.json(url).then(function (data) {
+        console.log(metaData);
+        let demographicInfoDiv = d3.select("#sample-metadata");
+        demographicInfoDiv.html("");
+        for (const [key, value] of Object.entries(demographicInfo)) {
+            demographicInfoDiv.append("p").text(`${key}: ${value}`);
+        }
+    });
 }
 
-function barChart(sampleIDs, metaData) {
-    let sampleDataInfo = sampleData.find(sample => sample.id === sampleId);
+function barChart(selection, data) {
+    d3.json(url).then(function (data) {
+        console.log(data);
+    let sampleDataInfo = data.samples.find(sample => sample.id === selection);
     let sample_value = sampleDataInfo.sample_values.slice(0, 10);
     let otu_ids = sampleDataInfo.otu_ids.slice(0, 10);
-    let otu_labels = sampleDataInfo.otu_labels.slice(0, 10)
-    console.log(sample_values);
-    console.log(otu_ids);
-    console.log(otu_labels);
+    let otu_labels = sampleDataInfo.otu_labels.slice(0, 10);
 
-    let barTrace = [{
+
+    let trace1 = [{
         x: sample_value.reverse(),
-        //y: otu_ids.map(item => `OTU ${item}`).reverse,
-        //y: otu_ids:OTU.reverse(),
-        label: otu_labels.reverse(),
-        type: `bar`,
-        orientation: `h`,
-    }
-];
-    //let data = [barTrace];
+        y: otu_ids.map(item => `OTU ${item}`).reverse(),
+        text: otu_labels.reverse(),
+        type: 'bar',
+        orientation: 'h'
+    }];
 
     let layout = {
-        title: "Top Ten OTU",
-        font: "New York Times"
+        title: 'Bacteria Count ',
+        xaxis: { title: 'Sample Values' },
+        yaxis: { title: 'OTU IDs' },
+        width: 600,
+        height: 400
     };
-    Plotly.newPlot("bar", barTrace, layout)
-}
+
+    Plotly.newPlot('bar', trace1, layout);
+    
+    });
+};
+
+//bubble chart
+//function bubbleChart(selection, data) {
+    //d3.json(url).then(function (data) {
+        //console.log("Generating bar chart...");
+        //let sampleDataInfo = data.samples.find(sample => sample.id === selection);
+       // let sample_value = sampleDataInfo.sample_values.slice(0, 10);
+       // let otu_ids = sampleDataInfo.otu_ids.slice(0, 10);
+       // let otu_labels = sampleDataInfo.otu_labels.slice(0, 10);
 init();
 
 
